@@ -213,6 +213,7 @@ Swagger:
 
 ## 💸 Data Providers
 
+### Free by default
 - Yahoo Finance (`yfinance`)
 
 ### Optional integrations
@@ -229,6 +230,25 @@ PYTHONPATH=. pytest -q
 
 ---
 
+## 🌐 Deploy (Streamlit Community Cloud)
+
+1. Push this repo to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io).
+3. Click **Create app**.
+4. Select:
+   - Repository: `aryannverse/Neural-Volatility-Surface-Forecaster`
+   - Branch: `main`
+   - Main file path: `dashboard/app.py`
+5. In **Advanced settings / Secrets**, set:
+   - `DATABASE_URL = "your-persistent-db-url"`
+   - Example (Neon/Postgres): `postgresql+psycopg://USER:PASSWORD@HOST/DBNAME?sslmode=require`
+6. Deploy and monitor logs.
+
+Reference docs:
+- [Deploy your app on Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy)
+- [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud)
+
+---
 
 ## 🔭 Future Extensions
 
