@@ -7,7 +7,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![QuantLib](https://img.shields.io/badge/QuantLib-Pricing%20Engine-1F5A8A?style=for-the-badge)
-![License](https://img.shields.io/badge/License-See%20LICENSE-green?style=for-the-badge)
+![License](https://img.shields.io/badge/License-GPL3.0%20LICENSE-green?style=for-the-badge)
 
 </div>
 
