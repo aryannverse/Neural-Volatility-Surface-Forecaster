@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "main.py", "api"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../:/app
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "main.py", "dashboard"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../:/app

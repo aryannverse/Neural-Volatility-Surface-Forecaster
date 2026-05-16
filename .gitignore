@@ -1,0 +1,46 @@
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python cache / build
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local runtime artifacts
+artifacts/
+logs/
+*.log
+
+# Local database and cached market data
+data/raw/*
+data/cached/*
+data/processed/neural_vol.db
+data/processed/*.db
+!data/raw/.gitkeep
+!data/cached/.gitkeep
+
+# Streamlit / secrets
+.streamlit/secrets.toml
+.env
+.env.*
+
+# MLflow local outputs
+mlruns/

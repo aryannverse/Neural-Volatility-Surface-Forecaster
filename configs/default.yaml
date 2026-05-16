@@ -1,0 +1,35 @@
+project:
+  name: neural-vol-surface
+  seed: 42
+
+data:
+  ticker: SPY
+  risk_free_rate: 0.03
+  lookback: 20
+  horizon: 1
+  frequency: 1D
+
+surface:
+  strike_points: 41
+  expiry_points: 24
+  strike_min_moneyness: 0.7
+  strike_max_moneyness: 1.3
+  expiry_min_years: 0.0027
+  expiry_max_years: 2.0
+  interpolation: cubic_spline
+
+training:
+  model_name: transformer
+  epochs: 30
+  batch_size: 32
+  learning_rate: 0.001
+  early_stopping_patience: 8
+  loss: huber
+  smoothness_weight: 0.05
+
+api:
+  host: 0.0.0.0
+  port: 8000
+
+dashboard:
+  port: 8501
