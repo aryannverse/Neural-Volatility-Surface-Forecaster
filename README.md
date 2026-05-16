@@ -1,267 +1,196 @@
+<div align="center">
+
 # Neural Volatility Surface Forecaster
 
-An institutional-style quantitative research platform for forecasting the **future implied volatility (IV) surface** of options markets.
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![QuantLib](https://img.shields.io/badge/QuantLib-Pricing%20Engine-1F5A8A?style=for-the-badge)
+![License](https://img.shields.io/badge/License-See%20LICENSE-green?style=for-the-badge)
 
-This project is built to feel like a real quant stack: data ingestion, pricing/inversion engines, surface construction, tensorized modeling, API serving, and a research dashboard.
+</div>
 
----
-
-## 1) Project Overview
-
-### Core objective
-Given a historical sequence of IV surfaces, predict the next surface (or multi-step horizon).
-
-- **Input tensor**: `[time, expiry, strike]`
-- **Output tensor**: future `[expiry, strike]` IV grid
-
-### Why this matters
-Volatility traders and risk desks care less about one option and more about **how the entire surface moves**:
-
-- Smile steepening/flattening
-- Skew shifts (downside risk repricing)
-- Term structure kinks (near-term stress vs long-dated calm)
-- Regime changes during market shocks
-
-### End users
-- Quant researchers
-- Derivatives trading teams
-- Volatility/risk managers
-- ML engineers working on financial sequence modeling
+An institutional-style quantitative research platform to model and forecast the **implied volatility (IV) surface** across strike and expiry dimensions using deep learning.
 
 ---
 
-## 2) What the System Does End-to-End
+## 🚀 About The Project
 
-1. Pulls options chain snapshots (free mode: Yahoo Finance).
-2. Computes implied volatilities robustly (Newton + Brent fallback).
-3. Builds and smooths IV surfaces on a stable strike/expiry grid.
-4. Stores surfaces and metadata in SQLite via SQLAlchemy.
-5. Trains deep models (LSTM, GRU, CNN-LSTM, Transformer, Autoencoder, Conv3D).
-6. Evaluates forecasts with quant-relevant metrics.
-7. Serves results via FastAPI.
-8. Visualizes market state and predictions via Streamlit.
+This project treats volatility as a **surface evolution problem**, not a single-point prediction problem.
 
----
+Given historical IV surfaces:
+- Input: past `N` surfaces `[time, expiry, strike]`
+- Output: future surface `[expiry, strike]`
 
-## 3) Quant Glossary (Essential Terms)
-
-### Option Chain
-The set of listed options for an underlying ticker across strikes and expiries.
-
-### Strike (`K`)
-The fixed exercise price of the option contract.
-
-### Expiry / Time-to-Maturity (`T`, `ttm`)
-Remaining life of the option, usually expressed in years for pricing.
-
-### Spot (`S`)
-Current underlying price.
-
-### Moneyness
-Relative strike level vs spot (commonly `K/S` or log-moneyness `log(K/S)`), used to compare smile shape across price levels.
-
-### Implied Volatility (IV)
-The volatility value that, when plugged into Black-Scholes, reproduces the market price of an option.
-
-### Smile / Skew
-- **Smile**: curvature of IV across strike.
-- **Skew**: directional slope of IV vs strike (equity markets often show downside put skew).
-
-### Term Structure
-How IV changes across expiries (short-dated vs long-dated vol levels).
-
-### Greeks
-Sensitivities of option price:
-- Delta: `dV/dS`
-- Gamma: `d2V/dS2`
-- Theta: time decay
-- Vega: volatility sensitivity
-- Rho: rate sensitivity
-
-### Risk-Neutral Pricing
-Pricing framework where discounted asset prices are martingales; Black-Scholes is derived under this measure.
-
-### Static Arbitrage (Surface Context)
-No-arbitrage shape constraints across strike and maturity dimensions (calendar monotonicity / butterfly convexity proxies).
+The system is designed for:
+- Volatility smile/skew dynamics
+- Term structure shifts
+- Regime transitions
+- Forecast-vs-market visualization
 
 ---
 
-## 4) Financial/Mathematical Engine
+## ✨ Key Features
 
-### Black-Scholes PDE implemented and documented
-`dV/dt + 0.5*sigma^2*S^2*d2V/dS2 + r*S*dV/dS - r*V = 0`
+- 📥 **Market Data Ingestion**: Pulls options chain snapshots (free default: Yahoo Finance).
+- 🧮 **Pricing & IV Engine**: Black-Scholes pricing, Greeks, and robust IV inversion (Newton + Brent fallback).
+- 🗺️ **Surface Construction**: Strike/expiry grids, interpolation, smoothing, and tensor storage.
+- 🧠 **Neural Forecasting**: LSTM, GRU, CNN-LSTM, Transformer, Autoencoder, Conv3D.
+- 📊 **Evaluation Stack**: RMSE, MAE, directional skew accuracy, cosine surface similarity.
+- 🧪 **Research Utilities**: Regime tagging, feature engineering, notebooks.
+- ⚡ **Serving Layer**: FastAPI endpoints + Streamlit dashboard.
+- 🗄️ **Persistence**: SQLAlchemy + SQLite for raw chains, surfaces, forecasts, and metrics.
 
-### IV inversion strategy
-For each option quote, solve:
-`BSPrice(sigma) - MarketPrice = 0`
-
-Pipeline:
-1. Newton-Raphson for speed near root.
-2. Brent fallback for robust bracketed convergence.
-3. Numerical safeguards for low-vega and boundary cases.
-
-### Surface construction
-- Axes: strike/moneyness x expiry
-- Grid aggregation: robust median binning
-- Missing-point interpolation: cubic spline / RBF
-- Smoothing: denoise while preserving market structure
+<img width="7224" height="3952" alt="Dashboard" src="https://github.com/user-attachments/assets/98f8021c-db83-46cc-a136-cf7805d4b368" />
 
 ---
 
-## 5) Machine Learning Architecture
+## 🛠️ Tech Stack
 
-Implemented forecasting model families:
+### Quant & Data
+- `numpy`, `pandas`, `scipy`, `statsmodels`
+- `py_vollib`, `QuantLib`
+- `yfinance` (default free provider)
 
-1. **LSTM Surface Forecaster**
-   - Flatten each surface frame, model temporal evolution.
-2. **GRU Surface Forecaster**
-   - Lighter recurrent alternative.
-3. **CNN + LSTM Hybrid**
-   - CNN captures spatial smile/skew structure, LSTM captures temporal deformation.
-4. **Transformer Surface Forecaster**
-   - Attention over temporal sequence for non-local dependencies/regime behavior.
-5. **Autoencoder + Forecast Head**
-   - Latent compression + temporal latent forecasting.
-6. **Conv3D (advanced)**
-   - Joint spatio-temporal convolution on `[time, expiry, strike]`.
+### ML
+- `PyTorch`
+- `scikit-learn`
+- Optional tracking: `MLflow`
 
-Loss:
-- MSE/MAE/Huber + smoothness regularization.
-
-Metrics:
-- RMSE
-- MAE
-- Directional skew accuracy
-- Surface cosine similarity
+### App Layer
+- `FastAPI` + `Pydantic`
+- `Streamlit`
+- `Plotly`, `Matplotlib`, `Seaborn`
+- `SQLAlchemy`
 
 ---
 
-## 6) Streamlit Dashboard — Complete Page Guide
+## 🧠 Core Quant Concepts (Quick Glossary)
 
-The dashboard entrypoint is:
-`dashboard/app.py`
-
-### Sidebar controls
-- **Ticker**: underlying symbol (`SPY`, `QQQ`, `AAPL`, etc.).
-- **Forecast Horizon slider**: UI control for target horizon context.
-- **Page selector**: switches analytical view.
-- **Refresh Data button**: pulls latest chain and persists newest surface snapshot.
-
-### Page A — Live options chain
-What it shows:
-- Raw option rows (top slice of latest snapshot).
-- Contract-level fields like strike, bid/ask, volume, open interest, IV, Greeks, maturity features.
-- Quick KPIs:
-  - Contract count
-  - Median IV
-
-How to interpret:
-- Use spread/liquidity fields to sanity-check quote quality.
-- Use volume/open interest to focus on active regions of the surface.
-
-### Page B — Current IV surface
-What it shows:
-- 3D surface (`x`: strike/moneyness, `y`: expiry, `z`: IV).
-- 2D heatmap of the same surface.
-
-How to interpret:
-- Vertical height differences show localized vol richness/cheapness.
-- Left-right asymmetry reflects skew.
-- Front-back gradient shows term structure shape.
-
-### Page C — Historical surface playback
-What it shows:
-- Animated sequence of stored historical surfaces.
-
-How to interpret:
-- Observe how smile/skew deforms through time.
-- Identify abrupt shape changes (shock regimes) vs gradual drift.
-
-### Page D — Forecasted surface
-What it shows:
-- Latest model-predicted surface.
-- Term-structure slice comparator (actual vs predicted) at user-selected strike index.
-
-How to interpret:
-- Compare structural match, not just pointwise values.
-- Slice view helps inspect maturity-wise forecast bias at a chosen strike.
-
-### Page E — Model performance
-What it shows:
-- Metrics history table from DB.
-- RMSE/MAE trend chart over runs.
-
-How to interpret:
-- Declining RMSE/MAE across retrains suggests better calibration.
-- Track whether improvements are stable or overfit/noisy.
-
-### Page F — Regime analysis
-What it shows:
-- Derived surface-state features (level, skew, curvature, slope, shock proxy).
-- Regime labels (KMeans-based state clustering).
-- Regime frequency chart.
-
-How to interpret:
-- Regime clustering provides market-state segmentation (calm / stressed / transition-like states).
-- Useful for conditional modeling or stress-driven strategy overlays.
+- **Implied Volatility (IV)**: Volatility implied by market option prices under Black-Scholes.
+- **Smile / Skew**: Cross-strike IV shape and directional slope.
+- **Term Structure**: How IV changes across maturities.
+- **Moneyness**: Relative strike/spot relationship (`K/S` or `log(K/S)`).
+- **Risk-Neutral Pricing**: Pricing under a measure where discounted prices are martingales.
+- **Greeks**: Sensitivities (`delta`, `gamma`, `theta`, `vega`, `rho`).
 
 ---
 
-## 7) Repository Structure
+## 📂 Project Structure
 
-```text
-neural-vol-surface/
+```bash
+Neural-Volatility-Surface-Forecaster/
 ├── data/
-│   ├── raw/                # snapshots
-│   ├── processed/          # DB and exported artifacts
-│   └── cached/             # provider/cache intermediates
-├── notebooks/              # research demos
-├── configs/                # config templates
+│   ├── raw/
+│   ├── processed/
+│   └── cached/
+├── notebooks/
+├── configs/
 ├── src/
-│   ├── ingestion/          # market data providers + pipeline
-│   ├── pricing/            # BS, Greeks, IV inversion, QuantLib hooks
-│   ├── iv_surface/         # grid/interpolation/arbitrage/tensor storage
-│   ├── preprocessing/      # cleaning/normalization/regimes
-│   ├── features/           # engineered features
-│   ├── datasets/           # supervised windows & dataloaders
-│   ├── models/             # deep architectures
-│   ├── training/           # loss/trainer/checkpointing
-│   ├── evaluation/         # metrics/backtesting utilities
-│   ├── visualization/      # plotly renderers
-│   ├── api/                # FastAPI app/service/schemas
-│   ├── database/           # SQLAlchemy models/repository
-│   └── utils/              # logging/paths/config
-├── dashboard/              # Streamlit UI
-├── tests/                  # pytest suite
-├── docker/                 # containerization
-├── PROJECT_FLOW_AND_CONCEPTS.md
+│   ├── ingestion/
+│   ├── pricing/
+│   ├── iv_surface/
+│   ├── preprocessing/
+│   ├── features/
+│   ├── datasets/
+│   ├── models/
+│   ├── training/
+│   ├── evaluation/
+│   ├── visualization/
+│   ├── api/
+│   ├── database/
+│   └── utils/
+├── dashboard/
+├── tests/
+├── docker/
+├── requirements.txt
 ├── main.py
-└── requirements.txt
+└── README.md
 ```
 
 ---
 
-## 8) Local Run Commands
+## 🏗️ Architecture
 
+```mermaid
+flowchart LR
+    A["Options Data Provider"] --> B["Ingestion + Cache"]
+    B --> C["IV Engine (Newton + Brent)"]
+    C --> D["Surface Builder (Grid + Interpolation + Smoothing)"]
+    D --> E["Surface Tensor Store [T,E,K]"]
+    E --> F["Model Training (LSTM/GRU/CNN-LSTM/Transformer/AE/Conv3D)"]
+    F --> G["Forecast Surface"]
+    F --> H["Evaluation Metrics"]
+    D --> I["SQLite via SQLAlchemy"]
+    G --> I
+    H --> I
+    I --> J["FastAPI"]
+    I --> K["Streamlit Dashboard"]
+```
+
+---
+
+## 📊 Streamlit Dashboard (What Each Page Shows)
+
+### 1) Live options chain
+- Latest contract rows (strike, bid/ask, volume, OI, IV, Greeks).
+- Quick market snapshot (contracts count + median IV).
+
+### 2) Current IV surface
+- Interactive 3D surface and 2D heatmap.
+- View smile/skew/term-structure shape in one place.
+
+### 3) Historical surface playback
+- Animated IV surface evolution over time.
+- Great for spotting shock regimes and deformation patterns.
+
+### 4) Forecasted surface
+- Latest predicted surface from trained model.
+- Term-structure slice compare: predicted vs actual.
+
+### 5) Model performance
+- Stored run metrics over time.
+- RMSE/MAE trend chart for tracking model quality.
+
+### 6) Regime analysis
+- Surface feature panel (level/skew/curvature/slope/shock proxy).
+- Cluster-based regime labels and distribution.
+
+---
+
+## ⚙️ Local Setup
+
+### 1) Clone and enter
+```bash
+git clone https://github.com/aryannverse/Neural-Volatility-Surface-Forecaster.git
+cd Neural-Volatility-Surface-Forecaster
+```
+
+### 2) Environment + install
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+### 3) Initialize
+```bash
 python main.py
 ```
 
-Collect data:
+### 4) Pull surface data
 ```bash
 python main.py ingest --ticker SPY
 python main.py ingest --ticker SPY --backfill-days 40 --frequency 1D
 ```
 
-Train:
+### 5) Train
 ```bash
 python main.py train --ticker SPY --model transformer --lookback 20 --horizon 1 --epochs 30 --batch-size 32
 ```
 
-Run servers (separate terminals):
+### 6) Run services (separate terminals)
 ```bash
 python main.py api
 python main.py dashboard
@@ -269,23 +198,48 @@ python main.py dashboard
 
 ---
 
-## 9) Data Providers and Cost
+## 🔌 API Endpoints
 
-### Fully free path (default)
-- Yahoo Finance (`yfinance`)
+- `GET /surface/current/{ticker}`
+- `GET /surface/history/{ticker}`
+- `GET /forecast/{ticker}`
+- `POST /train`
+- `WS /ws/forecast/{ticker}`
 
-### Optional provider modules included
-- Polygon
-- Alpaca
-
-These are optional integrations and may require account/API credentials depending on your plan.
+Swagger:
+`http://localhost:8000/docs`
 
 ---
 
-## 10) Research Extensions
+## 💸 Data Providers
 
-- Regime-conditioned forecasting
-- Arbitrage-constrained neural losses
-- Uncertainty quantification (ensembles/Bayesian heads)
+- Yahoo Finance (`yfinance`)
+
+### Optional integrations
+- Polygon
+- Alpaca
+
+---
+
+## ✅ Testing
+
+```bash
+PYTHONPATH=. pytest -q
+```
+
+---
+
+
+## 🔭 Future Extensions
+
+- Arbitrage-constrained training losses
+- Uncertainty-aware forecasts
+- Regime-conditioned model ensembles
 - Cross-asset transfer learning
-- Volatility strategy/risk overlays
+- Volatility strategy overlays
+
+---
+
+<div align="center">
+Built with focus, curiosity, and quant obsession by <a href="https://github.com/aryannverse">aryannverse</a> ⚡
+</div>
